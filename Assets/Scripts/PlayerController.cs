@@ -40,9 +40,14 @@ public class PlayerController : MonoBehaviour
 	private float cameraShakeDuration = 0.3f;
 	[SerializeField]
 	private float distanceForBoost = 2;
+    [Range(0, 1)]
+    [SerializeField]
+    private float boostValue = .2f;
 
-	private bool isBodyTaken = false;
+    [HideInInspector]
     public bool CanGetBoost = false;
+
+    private bool isBodyTaken = false;
     private bool isWaitingForGhostForm = false;
 	private bool onGound = false;
     private float distanceAtAttack = Mathf.Infinity;
@@ -209,7 +214,7 @@ public class PlayerController : MonoBehaviour
 
                 if (hit)
                 {
-                    distanceAtAttack = (hit.collider.transform.position - this.transform.position).magnitude;
+                    distanceAtAttack = ((Vector3)hit.point - this.transform.position).magnitude;
                     if (distanceAtAttack <= distanceForBoost)
                         CanGetBoost = true;
 
@@ -309,7 +314,7 @@ public class PlayerController : MonoBehaviour
 				Camera.main.GetComponent<CameraController>().shakeCamera(cameraShakeDuration);
 				if (CanGetBoost)
 				{
-					GameController.instance.BoostValue += .1f;
+					GameController.instance.BoostValue += boostValue;
 					CanGetBoost = false;
 					distanceAtAttack = Mathf.Infinity;
 				}
