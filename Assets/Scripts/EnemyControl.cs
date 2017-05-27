@@ -15,8 +15,6 @@ public class EnemyControl : MonoBehaviour
     [SerializeField]
     private float jumpUpForce;
     [SerializeField]
-    private float jumpDelay;
-    [SerializeField]
     private Collider2D enemyCollider;
     [SerializeField]
     private LayerMask groundMask;
