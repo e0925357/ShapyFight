@@ -20,21 +20,29 @@ public class PlayerCollisionsHandler : MonoBehaviour
         {
             GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>().TakeTheBodyBack();
         }
+        else if (collision.collider.gameObject.tag.Equals("Enemy"))
+        {
+            collision.gameObject.GetComponent<EnemyControl>().DefendYourself();
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.tag.Equals("Death"))
         {
-            if (GameController.instance.IsSecondChance)
+            if (!collision.gameObject.GetComponentInParent<EnemyControl>().isDead)
             {
-                // this also changes the player's state
-                GameController.instance.IsFailed = true;
-            }
-            else
-            {
-                this.gameObject.GetComponent<PlayerController>().PlayerState = PlayerState.Ghost;
-                enemyWithBody = collision.gameObject.GetComponentInParent<EnemyControl>();
+                if (GameController.instance.IsSecondChance)
+                {
+                    // this also changes the player's state
+                    GameController.instance.IsFailed = true;
+                }
+                else
+                {
+                    this.gameObject.GetComponent<PlayerController>().PlayerState = PlayerState.Ghost;
+                    enemyWithBody = collision.gameObject.GetComponentInParent<EnemyControl>();
+                    enemyWithBody.hasKilledPlayer = true;
+                }
             }
         }
     }

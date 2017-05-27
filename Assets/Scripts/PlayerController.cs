@@ -244,7 +244,7 @@ public class PlayerController : MonoBehaviour
             if (attackType == AttackType.FORWARD)
             {
                 RaycastHit2D hit = Physics2D.BoxCast(
-                    this.transform.position + new Vector3(col.bounds.extents.x + (raycastLenght / 2), 0),
+                    this.transform.position + new Vector3((col.bounds.extents.x + (raycastLenght / 2)) * (int)playerState, 0),
                     new Vector2(raycastLenght, col.bounds.extents.y * 2),
                     0,
                     Vector2.right * (int)playerState,
@@ -261,10 +261,10 @@ public class PlayerController : MonoBehaviour
             {
                 RaycastHit2D hit = Physics2D.BoxCast(
                     this.transform.position + new Vector3(0, col.bounds.extents.y + raycastLenght / 2),
-                    new Vector2(col.bounds.extents.y * 2, raycastLenght),
+                    new Vector2(col.bounds.extents.y * 2, raycastLenght + .4f),
                     0,
                     Vector2.down,
-                    raycastLenght,
+                    raycastLenght + .4f,
                     enemyLayer
                     );
 
@@ -283,6 +283,7 @@ public class PlayerController : MonoBehaviour
         this.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
         this.gameObject.GetComponentInChildren<Collider2D>().enabled = true;
         isWaitingForGhostForm = false;
+        GameController.instance.IsSecondChance = true;
     }
 
     public void TakeTheBodyBack()
