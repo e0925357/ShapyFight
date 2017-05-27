@@ -45,8 +45,12 @@ public class PlayerController : MonoBehaviour
     private float boostValue = .2f;
 	[SerializeField]
 	private float attackCooldownTime = 0.6f;
+	[SerializeField]
+	private float dashSpeedBonus = 5f;
+	[SerializeField]
+	private float dashDuration = 0.4f;
 
-    [HideInInspector]
+	[HideInInspector]
     public bool CanGetBoost = false;
 
     private bool isBodyTaken = false;
@@ -58,6 +62,7 @@ public class PlayerController : MonoBehaviour
 	private Color defaultColor;
 	private SpriteRenderer bodyRenderer;
 	private Coroutine attackCooldownCoroutine;
+	private float dashAttackSpeedValue = 0f;
 
     private float totalDistancePassed = 0;
     private Vector3 lastPos = new Vector3();
@@ -167,7 +172,7 @@ public class PlayerController : MonoBehaviour
 		c = defaultColor;
 		c.a = bodyRenderer.color.a;
 		bodyRenderer.color = c;
-
+		
 		Attacking = false;
 		attackTimerCoroutine = null;
 	}
@@ -177,6 +182,24 @@ public class PlayerController : MonoBehaviour
 		yield return new WaitForSeconds(attackCooldownTime);
 
 		attackCooldownCoroutine = null;
+	}
+
+	IEnumerator DecreaseSpeedBonus()
+	{
+		yield return new WaitForSeconds(dashDuration);
+
+		const float easingTime = 0.1f;
+		float timer = easingTime;
+
+		while (timer > 0f)
+		{
+			timer -= Time.deltaTime;
+			dashAttackSpeedValue = Mathf.Lerp(0f, dashSpeedBonus, Mathf.Pow(timer / easingTime, 2));
+
+			yield return new WaitForEndOfFrame();
+		}
+
+		dashAttackSpeedValue = 0f;
 	}
 
 	// Update is called once per frame
@@ -265,6 +288,12 @@ public class PlayerController : MonoBehaviour
 				attack();
 
 				attackCooldownCoroutine = StartCoroutine(DoAttackCooldown());
+
+				if (!onGound)
+				{
+					dashAttackSpeedValue = dashSpeedBonus;
+					StartCoroutine(DecreaseSpeedBonus());
+				}
 			}
 
 			physicsBody.velocity = velocity;
@@ -292,7 +321,7 @@ public class PlayerController : MonoBehaviour
 		Vector2 velocity = physicsBody.velocity;
 		int direction = PlayerState == PlayerState.Alive ? 1 : -1;
 
-		velocity.x = baseSpeed*direction * GameController.instance.BoostValue;
+		velocity.x = (baseSpeed + dashAttackSpeedValue) *direction * GameController.instance.BoostValue;
 
 		physicsBody.velocity = velocity;
 
