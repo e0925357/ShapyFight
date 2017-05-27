@@ -5,8 +5,10 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
 	public delegate void StateChanged(PlayerState oldState, PlayerState newState);
+	public delegate void Dash();
 
 	public event StateChanged playerStateChangeEvent;
+	public event Dash dashEvent;
 
 	private static int _animJump = Animator.StringToHash("Jump");
 	private static int _animDuck = Animator.StringToHash("Duck");
@@ -293,6 +295,11 @@ public class PlayerController : MonoBehaviour
 				{
 					dashAttackSpeedValue = dashSpeedBonus;
 					StartCoroutine(DecreaseSpeedBonus());
+
+					if (dashEvent != null)
+					{
+						dashEvent();
+					}
 				}
 			}
 
