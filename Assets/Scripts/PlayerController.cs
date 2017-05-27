@@ -6,6 +6,12 @@ public class PlayerController : MonoBehaviour
 
 	public event StateChanged playerStateChangeEvent;
 
+	private static int _animJump = Animator.StringToHash("Jump");
+	private static int _animDuck = Animator.StringToHash("Duck");
+	private static int _animPunch = Animator.StringToHash("Punch");
+	private static int _animOnGround = Animator.StringToHash("OnGround");
+	private static int _animGoesRight = Animator.StringToHash("GoesRight");
+
 	[SerializeField]
 	private float baseSpeed = 10;
 	[SerializeField]
@@ -14,6 +20,8 @@ public class PlayerController : MonoBehaviour
 	private LayerMask groundLayer;
 	[SerializeField]
 	private float groundRaycastLength = 0.03f;
+	[SerializeField]
+	private Animator playerAnimator;
 
 	private bool onGound = false;
 
@@ -34,7 +42,14 @@ public class PlayerController : MonoBehaviour
 			{
 				playerStateChangeEvent(oldValue, playerState);
 			}
+
+			playerAnimator.SetBool(_animGoesRight, PlayerState == PlayerState.Alive);
 		}
+	}
+
+	void Start()
+	{
+		playerAnimator.SetBool(_animGoesRight, PlayerState == PlayerState.Alive);
 	}
 
 	
@@ -59,6 +74,18 @@ public class PlayerController : MonoBehaviour
 		if (Input.GetButtonDown("Jump") && onGound)
 		{
 			velocity.y = jumpVelocity;
+			playerAnimator.SetTrigger(_animJump);
+		}
+
+		if (Input.GetButtonDown("Duck"))
+		{
+			playerAnimator.SetTrigger(_animDuck);
+		}
+
+		if (PlayerState == PlayerState.Alive && Input.GetButtonDown("PunchRight") ||
+		    PlayerState == PlayerState.Ghost && Input.GetButtonDown("PunchLeft"))
+		{
+			playerAnimator.SetTrigger(_animPunch);
 		}
 
 		physicsBody.velocity = velocity;
@@ -76,6 +103,8 @@ public class PlayerController : MonoBehaviour
 
 		onGound = Physics2D.Raycast(new Vector2(0f, -0.5f) + (Vector2) transform.position,
 			Vector2.down, groundRaycastLength, groundLayer);
+
+		playerAnimator.SetBool(_animOnGround, onGound);
 	}
 }
 
