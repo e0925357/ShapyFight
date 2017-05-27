@@ -5,11 +5,11 @@ using UnityEngine;
 public class EnemyControl : MonoBehaviour
 {
     [SerializeField]
+    private GameObject playerBodyPrefab;
+    [SerializeField]
     private Direction enemyDirection;
     [SerializeField]
     private float extraForce;
-    [SerializeField]
-    private Rigidbody2D playerRigid;
     [SerializeField]
     private float jumpForwardForce;
     [SerializeField]
@@ -18,6 +18,9 @@ public class EnemyControl : MonoBehaviour
     private Collider2D enemyCollider;
     [SerializeField]
     private LayerMask groundMask;
+
+    [HideInInspector]
+    public GameObject PlayerBody;
 
     private bool isDead = false;
     private bool isPlayerConnected = false;
@@ -82,11 +85,13 @@ public class EnemyControl : MonoBehaviour
         rigid.AddTorque(-45);
     }
 
-    public void TakePlayer()
+    public void TakeAndSpawnPlayerBody(Vector3 position)
     {
+        PlayerBody = Instantiate(playerBodyPrefab, position, Quaternion.identity) as GameObject;
+
         isPlayerConnected = true;
         SpringJoint2D joint = this.gameObject.GetComponent<SpringJoint2D>();
         joint.enabled = true;
-        joint.connectedBody = playerRigid;
+        joint.connectedBody = PlayerBody.GetComponent<Rigidbody2D>();
     }
 }

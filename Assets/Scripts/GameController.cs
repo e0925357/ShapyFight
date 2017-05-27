@@ -6,6 +6,8 @@ public class GameController : MonoBehaviour
 {
     public static GameController instance;
 
+    public bool IsSecondChance { get; set; }
+
     private bool isFailed;
     public bool IsFailed
     {
@@ -14,7 +16,10 @@ public class GameController : MonoBehaviour
         {
             isFailed = value;
             if (value)
+            {
+                GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>().PlayerState = PlayerState.Dead;
                 UIController.instance.ShowFailedUI();
+            }
             else
                 UIController.instance.ShowHUDUI();
         }
@@ -56,5 +61,10 @@ public class GameController : MonoBehaviour
     private void Awake()
     {
         instance = this;
+    }
+
+    public void RestartGame()
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
     }
 }
