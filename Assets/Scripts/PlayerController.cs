@@ -311,7 +311,8 @@ public class PlayerController : MonoBehaviour
 			if (hit)
 			{
 				hit.rigidbody.GetComponent<EnemyControl>().Death(hit.point);
-				Camera.main.GetComponent<CameraController>().shakeCamera(cameraShakeDuration);
+				Camera.main.GetComponent<CameraController>().ShakeCamera(cameraShakeDuration);
+				Camera.main.GetComponent<CameraController>().ScreenFlash();
 				if (CanGetBoost)
 				{
 					GameController.instance.BoostValue += boostValue;
