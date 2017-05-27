@@ -38,10 +38,15 @@ public class PlayerController : MonoBehaviour
 	private float crushVelocity = 3f;
 	[SerializeField]
 	private float cameraShakeDuration = 0.3f;
+	[SerializeField]
+	private float distanceForBoost = 2;
 
 	private bool isBodyTaken = false;
+    public bool CanGetBoost = false;
     private bool isWaitingForGhostForm = false;
 	private bool onGound = false;
+    private float distanceAtAttack = Mathf.Infinity;
+    private float currentTime = 0;
 	private Coroutine attackTimerCoroutine = null;
 	private Color defaultColor;
 	private SpriteRenderer bodyRenderer;
@@ -162,6 +167,14 @@ public class PlayerController : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
+        currentTime += Time.deltaTime;
+
+        if (currentTime >= 1)
+        {
+            currentTime = 0;
+            GameController.instance.BoostValue -= .01f;
+        }
+
 		if (isWaitingForGhostForm)
 		{
 			if (isBodyTaken)
@@ -190,7 +203,18 @@ public class PlayerController : MonoBehaviour
 				playerAnimator.SetTrigger(_animJump);
 
 				GetComponent<PlSoundManager>().playSound(SoundType.Jump, 0.05f);
-			}
+
+                Collider2D col = this.GetComponentInChildren<Collider2D>();
+                RaycastHit2D hit = Physics2D.BoxCast(this.transform.position, new Vector2(1, col.bounds.extents.y * 2), 0, Vector2.right * (int)playerState, Mathf.Infinity, enemyLayer);
+
+                if (hit)
+                {
+                    distanceAtAttack = (hit.collider.transform.position - this.transform.position).magnitude;
+                    if (distanceAtAttack <= distanceForBoost)
+                        CanGetBoost = true;
+
+                }
+            }
 
 			if (Input.GetButtonDown("Duck"))
 			{
@@ -238,7 +262,7 @@ public class PlayerController : MonoBehaviour
 		Vector2 velocity = physicsBody.velocity;
 		int direction = PlayerState == PlayerState.Alive ? 1 : -1;
 
-		velocity.x = baseSpeed*direction;
+		velocity.x = baseSpeed*direction * GameController.instance.BoostValue;
 
 		physicsBody.velocity = velocity;
 
@@ -283,6 +307,12 @@ public class PlayerController : MonoBehaviour
 			{
 				hit.rigidbody.GetComponent<EnemyControl>().Death(hit.point);
 				Camera.main.GetComponent<CameraController>().shakeCamera(cameraShakeDuration);
+				if (CanGetBoost)
+				{
+					GameController.instance.BoostValue += .1f;
+					CanGetBoost = false;
+					distanceAtAttack = Mathf.Infinity;
+				}
 			}
 		}
 	}

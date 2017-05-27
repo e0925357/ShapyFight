@@ -31,10 +31,7 @@ public class GameController : MonoBehaviour
         get { return boostValue + 1; }
         set
         {
-            if (boostValue >= 1)
-                return;
-
-            boostValue = value - 1;
+            boostValue = Mathf.Clamp01(value - 1);
             UIController.instance.UpdateBoostBar();
         }
     }
