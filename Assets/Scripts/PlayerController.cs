@@ -34,8 +34,12 @@ public class PlayerController : MonoBehaviour
     private float timeForTurningIntoGhost = 3;
     [SerializeField]
     private float raycastLenght = .5f;
+	[SerializeField]
+	private float crushVelocity = 3f;
+	[SerializeField]
+	private float cameraShakeDuration = 0.3f;
 
-    private bool isBodyTaken = false;
+	private bool isBodyTaken = false;
     private bool isWaitingForGhostForm = false;
 	private bool onGound = false;
 	private Coroutine attackTimerCoroutine = null;
@@ -65,6 +69,7 @@ public class PlayerController : MonoBehaviour
                     this.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
                     this.gameObject.GetComponentInChildren<Collider2D>().enabled = false;
                     isWaitingForGhostForm = true;
+	                GameObject.FindGameObjectWithTag("EnemySpawner").GetComponent<TimedSpawner>().enabled = false;
                     break;
             }
 			if (oldValue != playerState && playerStateChangeEvent != null)
@@ -195,6 +200,7 @@ public class PlayerController : MonoBehaviour
 				{
                     attackType = AttackType.DOWNWARDS;
 					attack();
+					velocity.y = -crushVelocity;
 				}
 			}
 
@@ -245,10 +251,12 @@ public class PlayerController : MonoBehaviour
 		if (Attacking)
 		{
             Collider2D col = this.gameObject.GetComponentInChildren<Collider2D>();
+			RaycastHit2D hit;
 
-            if (attackType == AttackType.FORWARD)
+
+			if (attackType == AttackType.FORWARD)
             {
-                RaycastHit2D hit = Physics2D.BoxCast(
+                hit = Physics2D.BoxCast(
                     this.transform.position + new Vector3((col.bounds.extents.x + (raycastLenght / 2)) * (int)playerState, 0),
                     new Vector2(raycastLenght, col.bounds.extents.y * 2),
                     0,
@@ -256,15 +264,10 @@ public class PlayerController : MonoBehaviour
                     raycastLenght,
                     enemyLayer
                     );
-
-                if (hit)
-                {
-                    Destroy(hit.transform.gameObject);
-                }
             }
             else if (attackType == AttackType.DOWNWARDS)
             {
-                RaycastHit2D hit = Physics2D.BoxCast(
+                hit = Physics2D.BoxCast(
                     this.transform.position + new Vector3(0, col.bounds.extents.y + raycastLenght / 2),
                     new Vector2(col.bounds.extents.y * 2, raycastLenght + .4f),
                     0,
@@ -272,14 +275,15 @@ public class PlayerController : MonoBehaviour
                     raycastLenght + .4f,
                     enemyLayer
                     );
-
-                if (hit)
-                {
-                    Destroy(hit.transform.gameObject);
-                }
             }
             else
                 throw new System.Exception("No attack type assigned!");
+
+			if (hit)
+			{
+				hit.rigidbody.GetComponent<EnemyControl>().Death(hit.point);
+				Camera.main.GetComponent<CameraController>().shakeCamera(cameraShakeDuration);
+			}
 		}
 	}
 
@@ -288,7 +292,8 @@ public class PlayerController : MonoBehaviour
         this.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
         this.gameObject.GetComponentInChildren<Collider2D>().enabled = true;
         isWaitingForGhostForm = false;
-        GameController.instance.IsSecondChance = true;
+	    GameObject.FindGameObjectWithTag("EnemySpawner").GetComponent<TimedSpawner>().enabled = true;
+		GameController.instance.IsSecondChance = true;
     }
 
     public void TakeTheBodyBack()

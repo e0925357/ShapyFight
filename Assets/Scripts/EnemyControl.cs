@@ -16,6 +16,8 @@ public class EnemyControl : MonoBehaviour
     private Collider2D enemyCollider;
     [SerializeField]
     private LayerMask groundMask;
+	[SerializeField]
+	private GameObject deathParticleGO;
 
     [HideInInspector]
     public GameObject PlayerBody;
@@ -88,7 +90,7 @@ public class EnemyControl : MonoBehaviour
         return false;
     }
 
-    public void Death()
+    public void Death(Vector2 hitpoint)
     {
         isDead = true;
 
@@ -99,6 +101,14 @@ public class EnemyControl : MonoBehaviour
 
         rigid.freezeRotation = false;
         rigid.AddTorque(-45);
+
+		Destroy(gameObject, 2f);
+
+	    if (deathParticleGO != null)
+	    {
+		    deathParticleGO.transform.position = hitpoint;
+		    deathParticleGO.GetComponent<ParticleSystem>().Play();
+	    }
     }
 
     public void TakeAndSpawnPlayerBody(Vector3 position)
