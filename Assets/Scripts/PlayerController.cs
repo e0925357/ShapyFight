@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Assets.Scripts;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -103,6 +104,8 @@ public class PlayerController : MonoBehaviour
 		}
 
 		attackTimerCoroutine = StartCoroutine(StartAttackTimer());
+
+		GetComponent<PlSoundManager>().playSound(SoundType.Attack, 0.05f);
 	}
 
 	IEnumerator StartAttackTimer()
@@ -177,6 +180,8 @@ public class PlayerController : MonoBehaviour
 			{
 				velocity.y = jumpVelocity;
 				playerAnimator.SetTrigger(_animJump);
+
+				GetComponent<PlSoundManager>().playSound(SoundType.Jump, 0.05f);
 			}
 
 			if (Input.GetButtonDown("Duck"))

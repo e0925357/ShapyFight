@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts;
 using UnityEngine;
 
 public class PlayerCollisionsHandler : MonoBehaviour
@@ -33,8 +34,11 @@ public class PlayerCollisionsHandler : MonoBehaviour
             }
             else
             {
-                this.gameObject.GetComponent<PlayerController>().PlayerState = PlayerState.Ghost;
-                enemyWithBody = collision.gameObject.GetComponentInParent<EnemyControl>();
+	            PlayerController pc = this.gameObject.GetComponent<PlayerController>();
+				pc.PlayerState = PlayerState.Ghost;
+				pc.GetComponent<PlSoundManager>().playSound(SoundType.Hurt, 0.02f);
+				enemyWithBody = collision.gameObject.GetComponentInParent<EnemyControl>();
+
             }
         }
     }
