@@ -4,6 +4,9 @@ namespace Assets.Scripts
 {
 	public class CameraController : MonoBehaviour
 	{
+		[SerializeField]
+		private float cameraSpeed = 1f;
+
 		private Transform playerTransform;
 
 		void Start()
@@ -17,8 +20,15 @@ namespace Assets.Scripts
 			int mod = playerTransform.GetComponent<PlayerController>().PlayerState == PlayerState.Alive ? -1 : 1;
 			float cameraWidth = Camera.main.orthographicSize * Camera.main.aspect;
 			float delta = playerTransform.position.x - (Camera.main.transform.position.x + cameraWidth*mod);
+			float scaledDelta = Mathf.Sign(delta) * cameraSpeed * Time.deltaTime;
 
-			Camera.main.transform.position = Camera.main.transform.position + new Vector3(delta + mod, 0, 0);
+			//Prevent overshooting
+			if (delta > 0 && scaledDelta > delta || delta < 0 && scaledDelta < delta)
+			{
+				scaledDelta = delta;
+			}
+
+			Camera.main.transform.position = Camera.main.transform.position + new Vector3(scaledDelta + mod, 0, 0);
 		}
 	}
 }
