@@ -7,8 +7,6 @@ public class EnemyControl : MonoBehaviour
     [SerializeField]
     private GameObject playerBodyPrefab;
     [SerializeField]
-    private Direction enemyDirection;
-    [SerializeField]
     private float extraForce;
     [SerializeField]
     private float jumpForwardForce;
@@ -21,11 +19,13 @@ public class EnemyControl : MonoBehaviour
 
     [HideInInspector]
     public GameObject PlayerBody;
-
-    private bool isDead = false;
+    [HideInInspector]
+    public bool isDead = false;
     private bool isPlayerConnected = false;
+    [HideInInspector]
+    public bool hasKilledPlayer = false;
     private Collider2D[] enemyColliders;
-
+    private PlayerController player;
     private Rigidbody2D rigid;
 
     private bool jumped = false;
@@ -34,6 +34,12 @@ public class EnemyControl : MonoBehaviour
     {
         rigid = this.gameObject.GetComponent<Rigidbody2D>();
         enemyColliders = this.gameObject.GetComponentsInChildren<Collider2D>();
+        player = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
+    }
+
+    private void Start()
+    {
+        this.transform.localScale = new Vector3((int)player.PlayerState, 1, 1);
     }
 
     private void Update()
@@ -56,10 +62,20 @@ public class EnemyControl : MonoBehaviour
     {
         rigid.velocity = new Vector2(0, 0);
 
-        if (!isPlayerConnected)
-            rigid.AddForce(new Vector2(jumpForwardForce * (int)enemyDirection, jumpUpForce), ForceMode2D.Impulse);
+        if (!hasKilledPlayer)
+        {
+            if (!isPlayerConnected)
+                rigid.AddForce(new Vector2(jumpForwardForce * (int)player.PlayerState, jumpUpForce), ForceMode2D.Impulse);
+            else
+                rigid.AddForce(new Vector2((jumpForwardForce + extraForce) * (int)player.PlayerState, jumpUpForce + extraForce * -1), ForceMode2D.Impulse);
+        }
         else
-            rigid.AddForce(new Vector2((jumpForwardForce + extraForce) * (int)enemyDirection, jumpUpForce + extraForce), ForceMode2D.Impulse);
+        {
+            if (!isPlayerConnected)
+                rigid.AddForce(new Vector2(jumpForwardForce * (int)player.PlayerState * -1, jumpUpForce), ForceMode2D.Impulse);
+            else
+                rigid.AddForce(new Vector2((jumpForwardForce + extraForce) * (int)player.PlayerState * -1, jumpUpForce + extraForce * -1), ForceMode2D.Impulse);
+        }
 
         jumped = true;
 
@@ -93,5 +109,17 @@ public class EnemyControl : MonoBehaviour
         SpringJoint2D joint = this.gameObject.GetComponent<SpringJoint2D>();
         joint.enabled = true;
         joint.connectedBody = PlayerBody.GetComponent<Rigidbody2D>();
+    }
+
+    public void DefendYourself()
+    {
+        StartCoroutine(Defend());
+    }
+
+    private IEnumerator Defend()
+    {
+        yield return new WaitForSeconds(.5f);
+        if(this.gameObject.GetComponent<Animator>() != null)
+            this.gameObject.GetComponent<Animator>().SetTrigger("Attack");
     }
 }

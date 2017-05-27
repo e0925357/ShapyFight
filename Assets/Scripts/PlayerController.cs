@@ -32,6 +32,8 @@ public class PlayerController : MonoBehaviour
 	private Color attackColor = Color.red;
     [SerializeField]
     private float timeForTurningIntoGhost = 3;
+    [SerializeField]
+    private float raycastLenght = .5f;
 
     private bool isBodyTaken = false;
     private bool isWaitingForGhostForm = false;
@@ -61,7 +63,7 @@ public class PlayerController : MonoBehaviour
                 case PlayerState.Ghost:
 
                     this.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
-                    this.gameObject.GetComponent<Collider2D>().enabled = false;
+                    this.gameObject.GetComponentInChildren<Collider2D>().enabled = false;
                     isWaitingForGhostForm = true;
                     break;
             }
@@ -73,8 +75,9 @@ public class PlayerController : MonoBehaviour
 			playerAnimator.SetBool(_animGoesRight, PlayerState == PlayerState.Alive);
 		}
 	}
-	
+
 	public bool Attacking { get; set; }
+    private AttackType attackType;
 
 	void Start()
 	{
@@ -95,7 +98,7 @@ public class PlayerController : MonoBehaviour
 			PlayerState = PlayerState.Alive;
 		}
 	}
-	
+
 	void attack()
 	{
 		if (attackTimerCoroutine != null)
@@ -190,6 +193,7 @@ public class PlayerController : MonoBehaviour
 
 				if (!onGound)
 				{
+                    attackType = AttackType.DOWNWARDS;
 					attack();
 				}
 			}
@@ -199,6 +203,7 @@ public class PlayerController : MonoBehaviour
 			{
 				playerAnimator.SetTrigger(_animPunch);
 
+                attackType = AttackType.FORWARD;
 				attack();
 			}
 
@@ -239,14 +244,51 @@ public class PlayerController : MonoBehaviour
 		//Check for enemyHits here
 		if (Attacking)
 		{
+            Collider2D col = this.gameObject.GetComponentInChildren<Collider2D>();
+
+            if (attackType == AttackType.FORWARD)
+            {
+                RaycastHit2D hit = Physics2D.BoxCast(
+                    this.transform.position + new Vector3((col.bounds.extents.x + (raycastLenght / 2)) * (int)playerState, 0),
+                    new Vector2(raycastLenght, col.bounds.extents.y * 2),
+                    0,
+                    Vector2.right * (int)playerState,
+                    raycastLenght,
+                    enemyLayer
+                    );
+
+                if (hit)
+                {
+                    Destroy(hit.transform.gameObject);
+                }
+            }
+            else if (attackType == AttackType.DOWNWARDS)
+            {
+                RaycastHit2D hit = Physics2D.BoxCast(
+                    this.transform.position + new Vector3(0, col.bounds.extents.y + raycastLenght / 2),
+                    new Vector2(col.bounds.extents.y * 2, raycastLenght + .4f),
+                    0,
+                    Vector2.down,
+                    raycastLenght + .4f,
+                    enemyLayer
+                    );
+
+                if (hit)
+                {
+                    Destroy(hit.transform.gameObject);
+                }
+            }
+            else
+                throw new System.Exception("No attack type assigned!");
 		}
 	}
 
     private void TurnPlayerIntoGhost()
     {
         this.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
-        this.gameObject.GetComponent<Collider2D>().enabled = true;
+        this.gameObject.GetComponentInChildren<Collider2D>().enabled = true;
         isWaitingForGhostForm = false;
+        GameController.instance.IsSecondChance = true;
     }
 
     public void TakeTheBodyBack()
@@ -264,5 +306,5 @@ public class PlayerController : MonoBehaviour
 
 public enum PlayerState
 {
-	Alive, Ghost, Dead
+	Alive = 1, Ghost = -1, Dead
 }
