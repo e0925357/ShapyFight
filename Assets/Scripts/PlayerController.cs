@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
@@ -19,11 +20,20 @@ public class PlayerController : MonoBehaviour
 	[SerializeField]
 	private LayerMask groundLayer;
 	[SerializeField]
+	private LayerMask enemyLayer;
+	[SerializeField]
 	private float groundRaycastLength = 0.03f;
 	[SerializeField]
 	private Animator playerAnimator;
+	[SerializeField]
+	private float attackTime = 0.5f;
+	[SerializeField]
+	private Color attackColor = Color.red;
 
 	private bool onGound = false;
+	private Coroutine attackTimerCoroutine = null;
+	private Color defaultColor;
+	private SpriteRenderer bodyRenderer;
 
 	[ContextMenuItem("Toggle Player State", "ToggleState")]
 	[SerializeField]
@@ -47,9 +57,13 @@ public class PlayerController : MonoBehaviour
 		}
 	}
 
+	public bool Attacking { get; set; }
+
 	void Start()
 	{
 		playerAnimator.SetBool(_animGoesRight, PlayerState == PlayerState.Alive);
+		bodyRenderer = GetComponentInChildren<SpriteRenderer>();
+		defaultColor = bodyRenderer.color;
 	}
 
 	
@@ -63,6 +77,59 @@ public class PlayerController : MonoBehaviour
 		{
 			PlayerState = PlayerState.Alive;
 		}
+	}
+
+	void attack()
+	{
+		if (attackTimerCoroutine != null)
+		{
+			StopCoroutine(attackTimerCoroutine);
+		}
+
+		attackTimerCoroutine = StartCoroutine(StartAttackTimer());
+	}
+
+	IEnumerator StartAttackTimer()
+	{
+		float colorTransitionTime = 0.1f;
+		float attackWaitTime = attackTime - colorTransitionTime*2;
+		float timer = 0;
+		Color c;
+		Attacking = true;
+
+		while (timer < colorTransitionTime)
+		{
+			c = Color.Lerp(defaultColor, attackColor, timer / colorTransitionTime);
+			c.a = bodyRenderer.color.a;
+
+			bodyRenderer.color = c;
+			timer += Time.deltaTime;
+
+			yield return new WaitForEndOfFrame();
+		}
+		c = attackColor;
+		c.a = bodyRenderer.color.a;
+		bodyRenderer.color = c;
+
+		yield return new WaitForSeconds(attackWaitTime);
+		timer = 0f;
+
+		while (timer < colorTransitionTime)
+		{
+			c = Color.Lerp(attackColor, defaultColor, timer / colorTransitionTime);
+			c.a = bodyRenderer.color.a;
+
+			bodyRenderer.color = c;
+			timer += Time.deltaTime;
+
+			yield return new WaitForEndOfFrame();
+		}
+		c = defaultColor;
+		c.a = bodyRenderer.color.a;
+		bodyRenderer.color = c;
+
+		Attacking = false;
+		attackTimerCoroutine = null;
 	}
 
 	// Update is called once per frame
@@ -80,12 +147,19 @@ public class PlayerController : MonoBehaviour
 		if (Input.GetButtonDown("Duck"))
 		{
 			playerAnimator.SetTrigger(_animDuck);
+
+			if (!onGound)
+			{
+				attack();
+			}
 		}
 
 		if (PlayerState == PlayerState.Alive && Input.GetButtonDown("PunchRight") ||
 		    PlayerState == PlayerState.Ghost && Input.GetButtonDown("PunchLeft"))
 		{
 			playerAnimator.SetTrigger(_animPunch);
+
+			attack();
 		}
 
 		physicsBody.velocity = velocity;
@@ -105,6 +179,11 @@ public class PlayerController : MonoBehaviour
 			Vector2.down, groundRaycastLength, groundLayer);
 
 		playerAnimator.SetBool(_animOnGround, onGound);
+
+		//Check for enemyHits here
+		if (Attacking)
+		{
+		}
 	}
 }
 
