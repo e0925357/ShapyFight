@@ -43,6 +43,8 @@ public class PlayerController : MonoBehaviour
     [Range(0, 1)]
     [SerializeField]
     private float boostValue = .2f;
+	[SerializeField]
+	private float attackCooldownTime = 0.6f;
 
     [HideInInspector]
     public bool CanGetBoost = false;
@@ -55,6 +57,7 @@ public class PlayerController : MonoBehaviour
 	private Coroutine attackTimerCoroutine = null;
 	private Color defaultColor;
 	private SpriteRenderer bodyRenderer;
+	private Coroutine attackCooldownCoroutine;
 
     private float totalDistancePassed = 0;
     private Vector3 lastPos = new Vector3();
@@ -169,6 +172,13 @@ public class PlayerController : MonoBehaviour
 		attackTimerCoroutine = null;
 	}
 
+	IEnumerator DoAttackCooldown()
+	{
+		yield return new WaitForSeconds(attackCooldownTime);
+
+		attackCooldownCoroutine = null;
+	}
+
 	// Update is called once per frame
 	void Update ()
 	{
@@ -218,8 +228,14 @@ public class PlayerController : MonoBehaviour
                     if (distanceAtAttack <= distanceForBoost)
                         CanGetBoost = true;
 
-                }
-            }
+				}
+
+				if (attackCooldownCoroutine != null)
+				{
+					StopCoroutine(attackCooldownCoroutine);
+					attackCooldownCoroutine = null;
+				}
+			}
 
 			if (Input.GetButtonDown("Duck"))
 			{
@@ -231,15 +247,24 @@ public class PlayerController : MonoBehaviour
 					attack();
 					velocity.y = -crushVelocity;
 				}
+
+				if (attackCooldownCoroutine != null)
+				{
+					StopCoroutine(attackCooldownCoroutine);
+					attackCooldownCoroutine = null;
+				}
 			}
 
-			if (PlayerState == PlayerState.Alive && Input.GetButtonDown("PunchRight") ||
-			    PlayerState == PlayerState.Ghost && Input.GetButtonDown("PunchLeft"))
+			if ((PlayerState == PlayerState.Alive && Input.GetButtonDown("PunchRight") ||
+			    PlayerState == PlayerState.Ghost && Input.GetButtonDown("PunchLeft")) &&
+			    attackCooldownCoroutine == null)
 			{
 				playerAnimator.SetTrigger(_animPunch);
 
                 attackType = AttackType.FORWARD;
 				attack();
+
+				attackCooldownCoroutine = StartCoroutine(DoAttackCooldown());
 			}
 
 			physicsBody.velocity = velocity;
