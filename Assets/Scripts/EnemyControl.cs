@@ -106,8 +106,9 @@ public class EnemyControl : MonoBehaviour
 
 	    if (deathParticleGO != null)
 	    {
-		    deathParticleGO.transform.position = hitpoint;
+		    deathParticleGO.transform.position = hitpoint - new Vector2(0f, 0.8f);
 		    deathParticleGO.GetComponent<ParticleSystem>().Play();
+			deathParticleGO.GetComponent<AudioSource>().Play();
 	    }
     }
 
