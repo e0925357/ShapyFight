@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Assets.Scripts.Sounds;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,7 +21,14 @@ public class PointsDisplay : MonoBehaviour
 
     public void DoScaleEffect() {
 		lastCoroutine = StartCoroutine(doScaleEffect());
-	}
+
+	    PitchedSound ps = GetComponent<PitchedSound>();
+
+	    if (ps != null)
+	    {
+		    ps.playWithRandomPitch();
+	    }
+    }
 
 	IEnumerator doScaleEffect()
 	{

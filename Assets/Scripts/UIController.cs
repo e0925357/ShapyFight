@@ -94,4 +94,12 @@ public class UIController : MonoBehaviour
         HUDCanvasGroup.Disable();
         failedScreenCanvasGroup.Disable();
     }
+
+	public void UpdateHighscoreText(bool newHighscore, int highscore)
+	{
+		if (newHighscore)
+			failedScreenText.text = string.Format("{0}\nThat's a new highscore!", failedScreenText.text);
+		else
+			failedScreenText.text = string.Format("{0}\nYour previous highscore was {1}!", failedScreenText.text, highscore);
+	}
 }

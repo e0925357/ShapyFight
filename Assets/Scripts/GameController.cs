@@ -36,7 +36,34 @@ public class GameController : MonoBehaviour
                 Time.timeScale = 0;
                 UIController.instance.UpdateFailedText();
                 UIController.instance.ShowFailedUI();
-            }
+
+	            bool newHighscore = false;
+	            int highscore;
+
+	            if (PlayerPrefs.HasKey("Highscore"))
+	            {
+		            highscore = PlayerPrefs.GetInt("Highscore");
+
+		            if (highscore < Score)
+		            {
+			            highscore = Score;
+			            newHighscore = true;
+		            }
+	            }
+	            else
+	            {
+					highscore = Score;
+		            newHighscore = true;
+				}
+
+	            if (newHighscore)
+	            {
+		            PlayerPrefs.SetInt("Highscore", highscore);
+					PlayerPrefs.Save();
+	            }
+
+	            UIController.instance.UpdateHighscoreText(newHighscore, highscore);
+			}
             else
                 UIController.instance.ShowHUDUI();
         }
