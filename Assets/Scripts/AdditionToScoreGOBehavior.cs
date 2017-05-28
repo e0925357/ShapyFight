@@ -22,6 +22,7 @@ public class AdditionToScoreGOBehavior : MonoBehaviour
         if ((this.transform.position - UIController.instance.scoreAdditionGOTran.position).magnitude <= .5f)
         {
             GameController.instance.Score += 1;
+            PointsDisplay.instance.DoScaleEffect();
             //UIController.instance.ScaleText();
             Destroy(this.gameObject);
         }
