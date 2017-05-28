@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using Assets.Scripts;
+using Assets.Scripts.Math;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -41,7 +42,7 @@ public class PlayerController : MonoBehaviour
 	[SerializeField]
 	private float cameraShakeDuration = 0.3f;
 	[SerializeField]
-	private float distanceForBoost = 2;
+	private Vector2 distanceForBoost = new Vector2(2f, 4f);
     [Range(0, 1)]
     [SerializeField]
     private float boostValue = .2f;
@@ -253,8 +254,8 @@ public class PlayerController : MonoBehaviour
 
                 if (hit)
                 {
-                    distanceAtAttack = ((Vector3)hit.point - this.transform.position).magnitude;
-                    if (distanceAtAttack <= distanceForBoost)
+                    distanceAtAttack = Mathf.Abs(hit.point.x - this.transform.position.x) - col.bounds.extents.x;
+                    if (distanceAtAttack <= distanceForBoost.y && distanceAtAttack > 0.05f)
                         CanGetBoost = true;
 
 				}
@@ -332,6 +333,7 @@ public class PlayerController : MonoBehaviour
         if (isWaitingForGhostForm || GameController.instance.IsPaused)
             return;
 
+		Collider2D col = GetComponentInChildren<Collider2D>();
 		Rigidbody2D physicsBody = GetComponent<Rigidbody2D>();
 		Vector2 velocity = physicsBody.velocity;
 		int direction = PlayerState == PlayerState.Alive ? 1 : -1;
@@ -340,7 +342,7 @@ public class PlayerController : MonoBehaviour
 
 		physicsBody.velocity = velocity;
 
-		onGound = Physics2D.Raycast(new Vector2(0f, -0.5f) + (Vector2) transform.position,
+		onGound = Physics2D.Raycast(new Vector2(0f, -col.bounds.extents.y) + (Vector2) transform.position,
 			Vector2.down, groundRaycastLength, groundLayer);
 
 		playerAnimator.SetBool(_animOnGround, onGound);
@@ -348,7 +350,6 @@ public class PlayerController : MonoBehaviour
 		//Check for enemyHits here
 		if (Attacking)
 		{
-            Collider2D col = this.gameObject.GetComponentInChildren<Collider2D>();
 			RaycastHit2D hit;
 
 
@@ -384,7 +385,13 @@ public class PlayerController : MonoBehaviour
 				Camera.main.GetComponent<CameraController>().ScreenFlash();
 				if (CanGetBoost)
 				{
-					GameController.instance.BoostValue += boostValue;
+					float boostModMod = 1f - Mathf.Clamp01((distanceAtAttack - distanceForBoost.x) /
+					                                  (distanceForBoost.y - distanceForBoost.x));
+					float boostMod = MathUtil.quadraticEasingInOut(boostModMod);
+
+					//Debug.Log(string.Format("distanceAtAttack: {0}, boostMod: {1}", distanceAtAttack, boostMod));
+					
+					GameController.instance.BoostValue += boostValue*boostMod;
 					CanGetBoost = false;
 					distanceAtAttack = Mathf.Infinity;
 				}
