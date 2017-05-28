@@ -23,7 +23,10 @@ public class PlayerCollisionsHandler : MonoBehaviour
         }
         else if (collision.collider.gameObject.tag.Equals("Enemy"))
         {
-            collision.gameObject.GetComponent<EnemyControl>().DefendYourself();
+            if(collision.gameObject.GetComponent<EnemyControl>() != null)
+                collision.gameObject.GetComponent<EnemyControl>().DefendYourself();
+            else
+                collision.gameObject.GetComponentInParent<EnemyControl>().DefendYourself();
         }
     }
 

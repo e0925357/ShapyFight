@@ -174,6 +174,9 @@ public class EnemyControl : MonoBehaviour
         yield return new WaitForSeconds(.5f);
         if(this.gameObject.GetComponent<Animator>() != null)
             this.gameObject.GetComponent<Animator>().SetTrigger("Attack");
+        else if(this.gameObject.GetComponentInParent<Animator>() != null)
+            this.gameObject.GetComponentInParent<Animator>().SetTrigger("Attack");
+
     }
 
 	void OnDisable()
