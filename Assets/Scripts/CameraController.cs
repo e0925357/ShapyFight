@@ -24,6 +24,9 @@ namespace Assets.Scripts
 
 		void Update()
 		{
+            if (GameController.instance.IsPaused)
+                return;
+
 			int mod = playerTransform.GetComponent<PlayerController>().PlayerState == PlayerState.Alive ? -1 : 1;
 			float cameraWidth = Camera.main.orthographicSize * Camera.main.aspect;
 			float delta = playerTransform.position.x - (Camera.main.transform.position.x + cameraWidth*mod);

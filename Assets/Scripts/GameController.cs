@@ -8,6 +8,20 @@ public class GameController : MonoBehaviour
 
     public bool IsSecondChance { get; set; }
 
+    private bool isPaused;
+    public bool IsPaused
+    {
+        get { return isPaused; }
+        private set
+        {
+            isPaused = value;
+            if (value)
+                UIController.instance.ShowPauseUI();
+            else
+                UIController.instance.ShowHUDUI();
+        }
+    }
+
     private bool isFailed;
     public bool IsFailed
     {
@@ -18,6 +32,9 @@ public class GameController : MonoBehaviour
             if (value)
             {
                 GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>().PlayerState = PlayerState.Dead;
+                isPaused = true;
+                Time.timeScale = 0;
+                UIController.instance.UpdateFailedText();
                 UIController.instance.ShowFailedUI();
             }
             else
@@ -58,10 +75,29 @@ public class GameController : MonoBehaviour
     private void Awake()
     {
         instance = this;
+        Time.timeScale = 1;
     }
 
     public void RestartGame()
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void RageQuit()
+    {
+#if UNITY_EDITOR
+        Debug.Log("Quitted");
+#endif
+        Application.Quit();
+    }
+
+    public void TogglePausing()
+    {
+        IsPaused = (isPaused) ? false : true;
+
+        if (isPaused)
+            Time.timeScale = 0;
+        else
+            Time.timeScale = 1;
     }
 }

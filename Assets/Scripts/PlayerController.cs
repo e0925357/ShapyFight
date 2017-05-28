@@ -172,6 +172,9 @@ public class PlayerController : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
+        if (GameController.instance.IsPaused)
+            return;
+
         currentTime += Time.deltaTime;
 
         if (currentTime >= 1)
@@ -260,7 +263,7 @@ public class PlayerController : MonoBehaviour
 
 	void FixedUpdate()
 	{
-        if (isWaitingForGhostForm)
+        if (isWaitingForGhostForm || GameController.instance.IsPaused)
             return;
 
 		Rigidbody2D physicsBody = GetComponent<Rigidbody2D>();

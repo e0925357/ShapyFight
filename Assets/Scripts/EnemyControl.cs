@@ -4,8 +4,13 @@ using UnityEngine;
 
 public class EnemyControl : MonoBehaviour
 {
+    [Header("Prefabs")]
     [SerializeField]
     private GameObject playerBodyPrefab;
+    [SerializeField]
+    private GameObject additionToScoreGOPrefab;
+
+    [Space()]
     [SerializeField]
     private float extraForce;
     [SerializeField]
@@ -46,7 +51,7 @@ public class EnemyControl : MonoBehaviour
 
     private void Update()
     {
-        if (isDead)
+        if (isDead || GameController.instance.IsPaused)
             return;
 
         if (jumped)
@@ -110,6 +115,12 @@ public class EnemyControl : MonoBehaviour
 		    deathParticleGO.GetComponent<ParticleSystem>().Play();
 			deathParticleGO.GetComponent<AudioSource>().Play();
 	    }
+
+        int i;
+        for (i = 0; i < 4; i++)
+        {
+            Instantiate(additionToScoreGOPrefab, this.transform.position, Quaternion.identity);
+        }
     }
 
     public void TakeAndSpawnPlayerBody(Vector3 position)
