@@ -342,10 +342,6 @@ public class PlayerController : MonoBehaviour
 						dashEvent();
 					}
 				}
-				else
-				{
-					upwardsAttackTimeWindowStart();
-				}
 			}
 
 			physicsBody.velocity = velocity;
