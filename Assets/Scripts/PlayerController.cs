@@ -91,7 +91,7 @@ public class PlayerController : MonoBehaviour
                     this.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
                     this.gameObject.GetComponentInChildren<Collider2D>().enabled = false;
                     isWaitingForGhostForm = true;
-	                GameObject.FindGameObjectWithTag("EnemySpawner").GetComponent<TimedSpawner>().enabled = false;
+	                GameObject.FindGameObjectWithTag("EnemySpawner").GetComponent<EnemySpawner>().enabled = false;
                     break;
             }
 			if (oldValue != playerState && playerStateChangeEvent != null)
@@ -411,7 +411,7 @@ public class PlayerController : MonoBehaviour
         this.gameObject.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
         this.gameObject.GetComponentInChildren<Collider2D>().enabled = true;
         isWaitingForGhostForm = false;
-	    GameObject.FindGameObjectWithTag("EnemySpawner").GetComponent<TimedSpawner>().enabled = true;
+	    GameObject.FindGameObjectWithTag("EnemySpawner").GetComponent<EnemySpawner>().enabled = true;
 		GameController.instance.IsSecondChance = true;
     }
 
