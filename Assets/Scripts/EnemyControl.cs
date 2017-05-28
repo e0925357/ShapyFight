@@ -14,6 +14,8 @@ public class EnemyControl : MonoBehaviour
 
     [Space()]
     [SerializeField]
+    private GameObject groundSpike;
+    [SerializeField]
     private float extraForce;
     [SerializeField]
     private float jumpForwardForce;
@@ -111,8 +113,16 @@ public class EnemyControl : MonoBehaviour
 
     private bool isGrounded()
     {
-        if (Physics2D.Raycast(this.transform.position + new Vector3(0, -enemyCollider.bounds.extents.y), Vector2.down, .05f, groundMask))
-            return true;
+        if (groundSpike == null)
+        {
+            if (Physics2D.Raycast(this.transform.position + new Vector3(0, -enemyCollider.bounds.extents.y), Vector2.down, .05f, groundMask))
+                return true;
+        }
+        else
+        {
+            if (Physics2D.Raycast(groundSpike.transform.position + new Vector3(0, -groundSpike.GetComponent<Collider2D>().bounds.extents.y), Vector2.down, .05f, groundMask))
+                return true;
+        }
         return false;
     }
 
