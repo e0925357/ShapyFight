@@ -313,18 +313,25 @@ public class PlayerController : MonoBehaviour
 			if (playerState == PlayerState.Alive)
 			{
 				totalDistancePassed += (lastPos - transform.position).magnitude;
-			}
+
+                if (Mathf.RoundToInt(totalDistancePassed) - lastAddedDistance >= 1)
+                {
+                    GameController.instance.Score += 1;
+                    lastAddedDistance = totalDistancePassed;
+                }
+            }
 			else if (playerState == PlayerState.Ghost)
 			{
 				totalDistancePassed -= (lastPos - transform.position).magnitude;
+
+                if (Mathf.RoundToInt(totalDistancePassed) - lastAddedDistance <= -1)
+                {
+                    GameController.instance.Score -= 1;
+                    lastAddedDistance = totalDistancePassed;
+                }
 			}
 
 			lastPos = transform.position;
-            if (Mathf.RoundToInt(totalDistancePassed) - lastAddedDistance >= 1)
-            {
-                GameController.instance.Score += 1;
-                lastAddedDistance = totalDistancePassed;
-            }
         }
 	}
 
@@ -390,7 +397,7 @@ public class PlayerController : MonoBehaviour
 					float boostMod = MathUtil.quadraticEasingInOut(boostModMod);
 
 					//Debug.Log(string.Format("distanceAtAttack: {0}, boostMod: {1}", distanceAtAttack, boostMod));
-					
+
 					GameController.instance.BoostValue += boostValue*boostMod;
 					CanGetBoost = false;
 					distanceAtAttack = Mathf.Infinity;

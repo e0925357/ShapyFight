@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class EnemyControl : MonoBehaviour
 {
@@ -51,6 +52,22 @@ public class EnemyControl : MonoBehaviour
     private void Start()
     {
         this.transform.localScale = new Vector3((int)player.PlayerState, 1, 1);
+    }
+
+    void OnEnable()
+    {
+        playerGo = GameObject.FindGameObjectWithTag("Player");
+        playerGo.GetComponent<PlayerController>().dashEvent += OnPlayerDash;
+
+        if (GameController.instance == null ||
+            this.gameObject.GetComponent<Animator>() == null ||
+            (from p in this.gameObject.GetComponent<Animator>().parameters where p.name.Equals("SpeedMulti") select p).ToArray().Length == 0)
+            return;
+
+        if (GameController.instance.Score >= 300)
+            this.gameObject.GetComponent<Animator>().SetFloat("SpeedMulti", UnityEngine.Random.Range(.2f, .4f));
+        else
+            this.gameObject.GetComponent<Animator>().SetFloat("SpeedMulti", 0);
     }
 
     private void Update()
@@ -148,12 +165,6 @@ public class EnemyControl : MonoBehaviour
         if(this.gameObject.GetComponent<Animator>() != null)
             this.gameObject.GetComponent<Animator>().SetTrigger("Attack");
     }
-
-	void OnEnable()
-	{
-		playerGo = GameObject.FindGameObjectWithTag("Player");
-		playerGo.GetComponent<PlayerController>().dashEvent += OnPlayerDash;
-	}
 
 	void OnDisable()
 	{
