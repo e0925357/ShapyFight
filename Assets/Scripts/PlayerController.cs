@@ -60,6 +60,7 @@ public class PlayerController : MonoBehaviour
 	private bool onGound = false;
     private float distanceAtAttack = Mathf.Infinity;
     private float currentTime = 0;
+    private float lastAddedDistance = 0;
 	private Coroutine attackTimerCoroutine = null;
 	private Color defaultColor;
 	private SpriteRenderer bodyRenderer;
@@ -174,7 +175,7 @@ public class PlayerController : MonoBehaviour
 		c = defaultColor;
 		c.a = bodyRenderer.color.a;
 		bodyRenderer.color = c;
-		
+
 		Attacking = false;
 		attackTimerCoroutine = null;
 	}
@@ -318,8 +319,12 @@ public class PlayerController : MonoBehaviour
 			}
 
 			lastPos = transform.position;
-			GameController.instance.Score = Mathf.RoundToInt(totalDistancePassed);
-		}
+            if (Mathf.RoundToInt(totalDistancePassed) - lastAddedDistance >= 1)
+            {
+                GameController.instance.Score += 1;
+                lastAddedDistance = totalDistancePassed;
+            }
+        }
 	}
 
 	void FixedUpdate()

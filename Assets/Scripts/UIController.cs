@@ -19,6 +19,8 @@ public class UIController : MonoBehaviour
     private RectTransform boostBarFillerRect;
     [SerializeField]
     private Text scoreText;
+    //[SerializeField]
+    //private Animator scoreAnim;
     [SerializeField]
     private Text failedScreenText;
 
@@ -59,6 +61,18 @@ public class UIController : MonoBehaviour
         scoreText.text = sb.ToString();
         sb.Remove(0, sb.Length);
     }
+
+    //public void ScaleText()
+    //{
+    //    if (scoreAnim.GetCurrentAnimatorStateInfo(0).IsName("ScoreTextNormal"))
+    //        scoreAnim.SetTrigger("Scale");
+    //    else
+    //    {
+    //        scoreAnim.SetTrigger("Repeat");
+    //        scoreAnim.SetTrigger("Scale");
+
+    //    }
+    //}
 
     public void ShowFailedUI()
     {

@@ -19,5 +19,11 @@ public class AdditionToScoreGOBehavior : MonoBehaviour
     private void Update()
     {
         this.transform.position = Vector3.MoveTowards(this.transform.position, UIController.instance.scoreAdditionGOTran.position, Mathf.Lerp(speedRange.x, speedRange.y, lerpSpeed));
+        if ((this.transform.position - UIController.instance.scoreAdditionGOTran.position).magnitude <= .5f)
+        {
+            GameController.instance.Score += 1;
+            //UIController.instance.ScaleText();
+            Destroy(this.gameObject);
+        }
     }
 }

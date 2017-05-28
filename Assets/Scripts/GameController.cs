@@ -59,6 +59,9 @@ public class GameController : MonoBehaviour
         get { return score; }
         set
         {
+            if (score > value)
+                Debug.Log(true);
+
             PlayerController player = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
             if (player.PlayerState == PlayerState.Ghost && score <= 0)
             {
