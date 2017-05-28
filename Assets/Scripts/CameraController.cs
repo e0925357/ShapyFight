@@ -81,7 +81,7 @@ namespace Assets.Scripts
 			flashCoroutine = null;
 		}
 
-		void Update()
+		void LateUpdate()
 		{
             if (GameController.instance.IsPaused)
                 return;
