@@ -438,6 +438,9 @@ public class PlayerController : MonoBehaviour
 
 			if (hit)
 			{
+                if (hit.rigidbody.GetComponent<EnemyControl>().hasKilledPlayer)
+                    TakeTheBodyBack();
+
 				hit.rigidbody.GetComponent<EnemyControl>().Death(hit.point);
 				Camera.main.GetComponent<CameraController>().ShakeCamera(cameraShakeDuration);
 				Camera.main.GetComponent<CameraController>().ScreenFlash();
