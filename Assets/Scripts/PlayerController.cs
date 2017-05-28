@@ -52,6 +52,8 @@ public class PlayerController : MonoBehaviour
 	private float dashSpeedBonus = 5f;
 	[SerializeField]
 	private float dashDuration = 0.4f;
+	[SerializeField]
+	private float upwardsTimeWindow = 0.4f;
 
 	[HideInInspector]
     public bool CanGetBoost = false;
@@ -67,8 +69,10 @@ public class PlayerController : MonoBehaviour
 	private SpriteRenderer bodyRenderer;
 	private Coroutine attackCooldownCoroutine;
 	private float dashAttackSpeedValue = 0f;
+	private bool canDoUpwardAttack = false;
+	private Coroutine upwardsTimerCoroutine = null;
 
-    private float totalDistancePassed = 0;
+	private float totalDistancePassed = 0;
     private Vector3 lastPos = new Vector3();
 
 	[ContextMenuItem("Toggle Player State", "ToggleState")]
@@ -206,6 +210,26 @@ public class PlayerController : MonoBehaviour
 		dashAttackSpeedValue = 0f;
 	}
 
+	IEnumerator StartUpwardsAttackTimer()
+	{
+		canDoUpwardAttack = true;
+
+		yield return new WaitForSeconds(upwardsTimeWindow);
+
+		canDoUpwardAttack = false;
+		upwardsTimerCoroutine = null;
+	}
+
+	void upwardsAttackTimeWindowStart()
+	{
+		if (upwardsTimerCoroutine != null)
+		{
+			StopCoroutine(upwardsTimerCoroutine);
+		}
+
+		upwardsTimerCoroutine = StartCoroutine(StartUpwardsAttackTimer());
+	}
+
 	// Update is called once per frame
 	void Update ()
 	{
@@ -247,9 +271,17 @@ public class PlayerController : MonoBehaviour
 				velocity.y = jumpVelocity;
 				playerAnimator.SetTrigger(_animJump);
 
-				GetComponent<PlSoundManager>().playSound(SoundType.Jump, 0.05f);
+				if (!canDoUpwardAttack)
+				{
+					GetComponent<PlSoundManager>().playSound(SoundType.Jump, 0.05f);
+				}
+				else
+				{
+					attackType = AttackType.UPWARDS;
+					attack();
+				}
 
-                Collider2D col = this.GetComponentInChildren<Collider2D>();
+				Collider2D col = this.GetComponentInChildren<Collider2D>();
                 RaycastHit2D hit = Physics2D.BoxCast(this.transform.position, new Vector2(1, col.bounds.extents.y * 2), 0, Vector2.right * (int)playerState, Mathf.Infinity, enemyLayer);
 
                 if (hit)
@@ -273,9 +305,13 @@ public class PlayerController : MonoBehaviour
 
 				if (!onGound)
 				{
-                    attackType = AttackType.DOWNWARDS;
+					attackType = AttackType.DOWNWARDS;
 					attack();
 					velocity.y = -crushVelocity;
+				}
+				else
+				{
+					upwardsAttackTimeWindowStart();
 				}
 
 				if (attackCooldownCoroutine != null)
@@ -305,6 +341,10 @@ public class PlayerController : MonoBehaviour
 					{
 						dashEvent();
 					}
+				}
+				else
+				{
+					upwardsAttackTimeWindowStart();
 				}
 			}
 
@@ -364,7 +404,7 @@ public class PlayerController : MonoBehaviour
             {
                 hit = Physics2D.BoxCast(
                     this.transform.position + new Vector3((col.bounds.extents.x + (raycastLenght / 2)) * (int)playerState, 0),
-                    new Vector2(raycastLenght, col.bounds.extents.y * 2),
+                    new Vector2(raycastLenght, col.bounds.extents.y * 1.9f),
                     0,
                     Vector2.right * (int)playerState,
                     raycastLenght,
@@ -375,14 +415,25 @@ public class PlayerController : MonoBehaviour
             {
                 hit = Physics2D.BoxCast(
                     this.transform.position + new Vector3(0, col.bounds.extents.y + raycastLenght / 2),
-                    new Vector2(col.bounds.extents.y * 2, raycastLenght + .4f),
+                    new Vector2(col.bounds.extents.x * 1.9f, raycastLenght + .4f),
                     0,
                     Vector2.down,
                     raycastLenght + .4f,
                     enemyLayer
                     );
             }
-            else
+			else if (attackType == AttackType.UPWARDS)
+			{
+				hit = Physics2D.BoxCast(
+					this.transform.position - new Vector3(0, col.bounds.extents.y + raycastLenght / 2),
+					new Vector2(col.bounds.extents.x * 1.9f, raycastLenght + .4f),
+					0,
+					Vector2.up,
+					raycastLenght + .4f,
+					enemyLayer
+				);
+			}
+			else
                 throw new System.Exception("No attack type assigned!");
 
 			if (hit)

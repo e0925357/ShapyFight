@@ -1,5 +1,6 @@
 ﻿public enum AttackType
 {
     FORWARD,
-    DOWNWARDS
+    DOWNWARDS,
+	UPWARDS
 }
