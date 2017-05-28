@@ -46,6 +46,9 @@ public class PlayerCollisionsHandler : MonoBehaviour
                     this.gameObject.GetComponent<PlayerController>().PlayerState = PlayerState.Ghost;
                     enemyWithBody = collision.gameObject.GetComponentInParent<EnemyControl>();
                     enemyWithBody.hasKilledPlayer = true;
+
+	                GameController.instance.BoostValue *= 0.4f;
+
                 }
             }
         }

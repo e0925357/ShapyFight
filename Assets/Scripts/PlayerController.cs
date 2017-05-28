@@ -5,8 +5,10 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
 	public delegate void StateChanged(PlayerState oldState, PlayerState newState);
+	public delegate void Dash();
 
 	public event StateChanged playerStateChangeEvent;
+	public event Dash dashEvent;
 
 	private static int _animJump = Animator.StringToHash("Jump");
 	private static int _animDuck = Animator.StringToHash("Duck");
@@ -43,8 +45,14 @@ public class PlayerController : MonoBehaviour
     [Range(0, 1)]
     [SerializeField]
     private float boostValue = .2f;
+	[SerializeField]
+	private float attackCooldownTime = 0.6f;
+	[SerializeField]
+	private float dashSpeedBonus = 5f;
+	[SerializeField]
+	private float dashDuration = 0.4f;
 
-    [HideInInspector]
+	[HideInInspector]
     public bool CanGetBoost = false;
 
     private bool isBodyTaken = false;
@@ -55,6 +63,8 @@ public class PlayerController : MonoBehaviour
 	private Coroutine attackTimerCoroutine = null;
 	private Color defaultColor;
 	private SpriteRenderer bodyRenderer;
+	private Coroutine attackCooldownCoroutine;
+	private float dashAttackSpeedValue = 0f;
 
     private float totalDistancePassed = 0;
     private Vector3 lastPos = new Vector3();
@@ -164,9 +174,34 @@ public class PlayerController : MonoBehaviour
 		c = defaultColor;
 		c.a = bodyRenderer.color.a;
 		bodyRenderer.color = c;
-
+		
 		Attacking = false;
 		attackTimerCoroutine = null;
+	}
+
+	IEnumerator DoAttackCooldown()
+	{
+		yield return new WaitForSeconds(attackCooldownTime);
+
+		attackCooldownCoroutine = null;
+	}
+
+	IEnumerator DecreaseSpeedBonus()
+	{
+		yield return new WaitForSeconds(dashDuration);
+
+		const float easingTime = 0.1f;
+		float timer = easingTime;
+
+		while (timer > 0f)
+		{
+			timer -= Time.deltaTime;
+			dashAttackSpeedValue = Mathf.Lerp(0f, dashSpeedBonus, Mathf.Pow(timer / easingTime, 2));
+
+			yield return new WaitForEndOfFrame();
+		}
+
+		dashAttackSpeedValue = 0f;
 	}
 
 	// Update is called once per frame
@@ -221,8 +256,14 @@ public class PlayerController : MonoBehaviour
                     if (distanceAtAttack <= distanceForBoost)
                         CanGetBoost = true;
 
-                }
-            }
+				}
+
+				if (attackCooldownCoroutine != null)
+				{
+					StopCoroutine(attackCooldownCoroutine);
+					attackCooldownCoroutine = null;
+				}
+			}
 
 			if (Input.GetButtonDown("Duck"))
 			{
@@ -234,15 +275,35 @@ public class PlayerController : MonoBehaviour
 					attack();
 					velocity.y = -crushVelocity;
 				}
+
+				if (attackCooldownCoroutine != null)
+				{
+					StopCoroutine(attackCooldownCoroutine);
+					attackCooldownCoroutine = null;
+				}
 			}
 
-			if (PlayerState == PlayerState.Alive && Input.GetButtonDown("PunchRight") ||
-			    PlayerState == PlayerState.Ghost && Input.GetButtonDown("PunchLeft"))
+			if ((PlayerState == PlayerState.Alive && Input.GetButtonDown("PunchRight") ||
+			    PlayerState == PlayerState.Ghost && Input.GetButtonDown("PunchLeft")) &&
+			    attackCooldownCoroutine == null)
 			{
 				playerAnimator.SetTrigger(_animPunch);
 
                 attackType = AttackType.FORWARD;
 				attack();
+
+				attackCooldownCoroutine = StartCoroutine(DoAttackCooldown());
+
+				if (!onGound)
+				{
+					dashAttackSpeedValue = dashSpeedBonus;
+					StartCoroutine(DecreaseSpeedBonus());
+
+					if (dashEvent != null)
+					{
+						dashEvent();
+					}
+				}
 			}
 
 			physicsBody.velocity = velocity;
@@ -270,7 +331,7 @@ public class PlayerController : MonoBehaviour
 		Vector2 velocity = physicsBody.velocity;
 		int direction = PlayerState == PlayerState.Alive ? 1 : -1;
 
-		velocity.x = baseSpeed*direction * GameController.instance.BoostValue;
+		velocity.x = (baseSpeed + dashAttackSpeedValue) *direction * GameController.instance.BoostValue;
 
 		physicsBody.velocity = velocity;
 
@@ -314,7 +375,8 @@ public class PlayerController : MonoBehaviour
 			if (hit)
 			{
 				hit.rigidbody.GetComponent<EnemyControl>().Death(hit.point);
-				Camera.main.GetComponent<CameraController>().shakeCamera(cameraShakeDuration);
+				Camera.main.GetComponent<CameraController>().ShakeCamera(cameraShakeDuration);
+				Camera.main.GetComponent<CameraController>().ScreenFlash();
 				if (CanGetBoost)
 				{
 					GameController.instance.BoostValue += boostValue;

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 namespace Assets.Scripts
 {
@@ -7,7 +8,11 @@ namespace Assets.Scripts
 		[SerializeField]
 		private float cameraSpeed = 1f;
 		[SerializeField]
-		public float shakeStrength = 0.7f;
+		private float shakeStrength = 0.7f;
+		[SerializeField]
+		private Color flashColor;
+		[SerializeField]
+		private float flashDuration = 0.3f;
 
 		private Transform playerTransform;
 		private float maxShakeTimer = 0;
@@ -15,11 +20,65 @@ namespace Assets.Scripts
 		private float shakeMod = 1;
 		private Vector3 lastCameraShakeOffset = Vector3.zero;
 		private float lastShakeAngle;
+		private Color originalColor;
+		private Coroutine flashCoroutine;
 
 		void Start()
 		{
 			GameObject playerGo = GameObject.FindGameObjectWithTag("Player");
 			playerTransform = playerGo.transform;
+			originalColor = Camera.main.backgroundColor;
+		}
+
+		public void ScreenFlash()
+		{
+			if (flashCoroutine != null)
+			{
+				StopCoroutine(flashCoroutine);
+			}
+
+			flashCoroutine = StartCoroutine(StartFlashing());
+		}
+
+		IEnumerator StartFlashing()
+		{
+			float colorTransitionTime = 0.1f;
+			float attackWaitTime = Mathf.Max(flashDuration - colorTransitionTime * 2, 0f);
+			float timer = 0;
+			Color c;
+
+			while (timer < colorTransitionTime)
+			{
+				c = Color.Lerp(originalColor, flashColor, timer / colorTransitionTime);
+				c.a = Camera.main.backgroundColor.a;
+
+				Camera.main.backgroundColor = c;
+				timer += Time.deltaTime;
+
+				yield return new WaitForEndOfFrame();
+			}
+			c = flashColor;
+			c.a = Camera.main.backgroundColor.a;
+			Camera.main.backgroundColor = c;
+
+			yield return new WaitForSeconds(attackWaitTime);
+			timer = 0f;
+
+			while (timer < colorTransitionTime)
+			{
+				c = Color.Lerp(flashColor, originalColor, timer / colorTransitionTime);
+				c.a = Camera.main.backgroundColor.a;
+
+				Camera.main.backgroundColor = c;
+				timer += Time.deltaTime;
+
+				yield return new WaitForEndOfFrame();
+			}
+			c = originalColor;
+			c.a = Camera.main.backgroundColor.a;
+			Camera.main.backgroundColor = c;
+
+			flashCoroutine = null;
 		}
 
 		void Update()
@@ -71,7 +130,7 @@ namespace Assets.Scripts
 			Camera.main.transform.position = newPos;
 		}
 
-		public void shakeCamera(float duration, float strengthMod = 1f)
+		public void ShakeCamera(float duration, float strengthMod = 1f)
 		{
 			maxShakeTimer = shakeTimer = duration;
 			shakeMod = strengthMod;

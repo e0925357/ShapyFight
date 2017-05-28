@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -23,6 +24,8 @@ public class EnemyControl : MonoBehaviour
     private LayerMask groundMask;
 	[SerializeField]
 	private GameObject deathParticleGO;
+	[SerializeField]
+	private float dashForce;
 
     [HideInInspector]
     public GameObject PlayerBody;
@@ -34,6 +37,7 @@ public class EnemyControl : MonoBehaviour
     private Collider2D[] enemyColliders;
     private PlayerController player;
     private Rigidbody2D rigid;
+	private GameObject playerGo;
 
     private bool jumped = false;
 
@@ -144,4 +148,26 @@ public class EnemyControl : MonoBehaviour
         if(this.gameObject.GetComponent<Animator>() != null)
             this.gameObject.GetComponent<Animator>().SetTrigger("Attack");
     }
+
+	void OnEnable()
+	{
+		playerGo = GameObject.FindGameObjectWithTag("Player");
+		playerGo.GetComponent<PlayerController>().dashEvent += OnPlayerDash;
+	}
+
+	void OnDisable()
+	{
+		if (playerGo)
+		{
+			playerGo.GetComponent<PlayerController>().dashEvent -= OnPlayerDash;
+		}
+	}
+
+	private void OnPlayerDash()
+	{
+		if (isPlayerConnected)
+		{
+			rigid.AddForce(Vector2.left*dashForce, ForceMode2D.Impulse);
+		}
+	}
 }
